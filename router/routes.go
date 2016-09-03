@@ -13,13 +13,13 @@ type Route struct {
 	pattern string
 	basePattern string
 	Handlers []string
-	Product string
+	Code string
 	Version string
 	ApiMethod product.Routes_v1
 }
 
 
-func newRoute(method string, name string, pattern string, handlers []string, product string, version string, apiMethod product.Routes_v1) (route *Route) {
+func newRoute(method string, name string, pattern string, handlers []string, code string, version string, apiMethod product.Routes_v1) (route *Route) {
 	pattern = strings.Replace(pattern, "(int)", "([0-9]+)", -1)
 	pattern = strings.Replace(pattern, "(alpha)", "([a-z]+)", -1)
 	pattern = strings.Replace(pattern, "(alphanumeric)", "([a-z0-9]+)", -1)
@@ -39,7 +39,7 @@ func newRoute(method string, name string, pattern string, handlers []string, pro
 		pattern = named.ReplaceAllString(pattern, "(?P<$1>[^/]+)")
 	}
 
-	route = &Route{strings.ToUpper(method), name, pattern, basePattern, handlers, product, version, apiMethod}
+	route = &Route{strings.ToUpper(method), name, pattern, basePattern, handlers, code, version, apiMethod}
 
 	return
 }

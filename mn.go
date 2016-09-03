@@ -20,14 +20,16 @@ func main()  {
 
 	productResource := product.NewProductResource(&product.ProductResourceOptions{})
 
-	gowayRouter := router.NewGoWayRouter()
+	gowayProductRouter := router.NewGowayProductRouter()
 
-	gowayRouter.LoadProductRoutes(productResource.GetAllProducts())
+	gowayProductRouter.LoadRoutes(productResource.GetAllProducts())
 
-	gowayRouter.LoadClients(productResource.GetAllClients())
+	gowayClientRouter := router.NewGowayClientRouter()
+
+	gowayClientRouter.LoadRoutes(productResource.GetAllClients())
 
 
-	gowayProxy := proxy.NewGoWayProxy(*url, gowayRouter)
+	gowayProxy := proxy.NewGoWayProxy(*url, gowayProductRouter, gowayClientRouter)
 
 	// server
 	http.HandleFunc("/", gowayProxy.Handle)

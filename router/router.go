@@ -45,26 +45,26 @@ func NewRouter() *Router {
 }
 
 
-func (r *Router) Get(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1 ) *Route {
-	return r.addRoute("GET", name, pattern, product, version, handlers, apiMethod)
+func (r *Router) Get(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1 ) *Route {
+	return r.addRoute("GET", name, pattern, code, version, handlers, apiMethod)
 }
 
-func (r *Router) Post(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
-	return r.addRoute("POST", name, pattern, product, version, handlers, apiMethod)
+func (r *Router) Post(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("POST", name, pattern, code, version, handlers, apiMethod)
 }
 
-func (r *Router) Put(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
-	return r.addRoute("PUT", name, pattern, product, version, handlers, apiMethod)
+func (r *Router) Put(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("PUT", name, pattern, code, version, handlers, apiMethod)
 }
 
-func (r *Router) Delete(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
-	return r.addRoute("DELETE", name, pattern, product, version, handlers, apiMethod)
+func (r *Router) Delete(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("DELETE", name, pattern, code, version, handlers, apiMethod)
 }
 
-func (r *Router) addRoute(method string, name string, pattern string, product string, version string,  handlers []string, apiMethod product.Routes_v1) *Route {
+func (r *Router) addRoute(method string, name string, pattern string, code string, version string,  handlers []string, apiMethod product.Routes_v1) *Route {
 
 
-	route := newRoute(method, name, pattern, handlers, product, version, apiMethod)
+	route := newRoute(method, name, pattern, handlers, code, version, apiMethod)
 
 	r.routes[name] = route
 	r.routesByMethod[method] = append(r.routesByMethod[method], route)
@@ -115,7 +115,7 @@ func (r *Router) extensionIsValid(ext string) bool {
 	return false
 }
 
-func (r *Router) Dispatch(method string, path string, product string, version string, client string) (*Route, map[string]interface{}) {
+func (r *Router) Dispatch(method string, path string, code string, version string) (*Route, map[string]interface{}) {
 	regex := regexp.MustCompile(`\.([^\.]+)$`)
 	params := make(map[string]interface{})
 	var ext string
@@ -146,7 +146,7 @@ func (r *Router) Dispatch(method string, path string, product string, version st
 				continue
 			}
 
-			if(nm[0]!=version || nm[1]!=product){
+			if(nm[0]!=version || nm[1]!=code){
 				continue
 			}
 

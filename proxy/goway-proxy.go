@@ -16,19 +16,21 @@ const (
 )
 
 type GoWayProxy struct{
-	proxy         *httputil.ReverseProxy
-	target        *url.URL
-	router        *router.GoWayRouter
+	proxy        	 	*httputil.ReverseProxy
+	target        		*url.URL
+	productRouter       *router.GowayProductRouter
+	clientRouter        *router.GowayClientRouter
 }
 
-func NewGoWayProxy(target string, router *router.GoWayRouter) *GoWayProxy{
+func NewGoWayProxy(target string, productRouter *router.GowayProductRouter, clientRouter *router.GowayClientRouter) *GoWayProxy{
 	url, _ := url.Parse(target)
 
 
 	return &GoWayProxy{
 		proxy: httputil.NewSingleHostReverseProxy(url),
 		target: url,
-		router: router,
+		productRouter: productRouter,
+		clientRouter: clientRouter,
 	}
 }
 
@@ -37,6 +39,8 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
 
 	//change
 	version := DEFAULT_VERSION
+	var rs bool
+	var route *router.Route
 
 	rs, cl, newPath := p.checkClient(r.URL.Path, version)
 
@@ -47,25 +51,40 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//check custom client routes
-	if(len(cl.Routes)>0){
-
-	}
-
-	rs, route := p.checkRoute(newPath, r.Method, cl.Product, cl.Version, cl.Client)
+	//check client routes
+	rs, route = p.checkRoute(newPath, r.Method, cl.Client, cl.Version, true)
 
 	if(rs){
-		p.redirect(route, cl.GlobalInjectData, w, r)
+			p.redirect(route, cl.GlobalInjectData, w, r)
 	}else{
-		http.Error(w, "ROUTE_NOT_FOUND", http.StatusNotFound)
-		return
+		//check product routes
+		rs, route = p.checkRoute(newPath, r.Method, cl.Product, cl.Version, false)
+
+		if(rs){
+			p.redirect(route, cl.GlobalInjectData, w, r)
+		}else{
+			http.Error(w, "ROUTE_NOT_FOUND", http.StatusNotFound)
+			return
+		}
 	}
+
+
+
+
+
 
 }
 
-func(p *GoWayProxy) checkRoute(path string, verb string, product string, version string, client string) (bool, *router.Route){
+func(p *GoWayProxy) checkRoute(path string, verb string, code string, version string, client bool) (bool, *router.Route){
+	var route *router.Route;
 
-	route, _ := p.router.CheckRoute(path, verb, product, version, client)
+	if(client){
+		route, _ = p.clientRouter.CheckRoute(path, verb, code, version)
+	}else{
+		route, _ = p.productRouter.CheckRoute(path, verb, code, version)
+	}
+
+
 	if(route==nil){
 		return false, nil
 	}else{
@@ -81,7 +100,7 @@ func(p *GoWayProxy) checkClient(path string, version string) (bool, *product.Cli
 		return false, nil, ""
 	}
 
-	client := p.router.CheckClient(urlSplit[1], version)
+	client := p.clientRouter.CheckClient(urlSplit[1], version)
 
 	if(client==nil || len(client.Client)==0){
 		return false, client, ""
