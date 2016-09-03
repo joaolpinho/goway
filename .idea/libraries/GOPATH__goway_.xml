@@ -122,6 +122,7 @@
       <root url="file://$PROJECT_DIR$/../../rogpeppe/godef/go/printer/testdata" />
       <root url="file://$USER_HOME$/go/src/github.com/docker/docker/docs/reference/api/_static" />
       <root url="file://$PROJECT_DIR$/../../tlantic/mrs-event-framework/vendor/golang.org/x/crypto/ssh/testdata" />
+      <root url="file://$PROJECT_DIR$/.git" />
       <root url="file://$USER_HOME$/go/src/github.com/docker/docker/hack/make/.build-deb" />
       <root url="file:///usr/local/go/src/cmd/objdump/testdata" />
       <root url="file://$PROJECT_DIR$/../../streadway/amqp/.git" />
