@@ -1,0 +1,3 @@
+package: github.com/andrepinto/goway
+import:
+- package: github.com/imdario/mergo

@@ -1,0 +1,189 @@
+package router
+
+import (
+	"regexp"
+	"strconv"
+	"strings"
+	"github.com/andrepinto/goway/product"
+)
+
+
+type Router struct {
+
+	validExtensions []string
+	routes map[string]*Route
+	routesByMethod map[string][]*Route
+	regexesByMethod map[string][]*regexp.Regexp
+
+}
+
+
+func NewRouter() *Router {
+	router := new(Router)
+
+	router.routes = make(map[string]*Route)
+
+	// Allow requests with no extensions by default
+	router.validExtensions = append(router.validExtensions, "")
+
+
+	router.routesByMethod = map[string][]*Route{
+		"GET":    make([]*Route, 0),
+		"POST":   make([]*Route, 0),
+		"PUT":    make([]*Route, 0),
+		"DELETE": make([]*Route, 0),
+	}
+
+	router.regexesByMethod = map[string][]*regexp.Regexp{
+		"GET":    make([]*regexp.Regexp, 0),
+		"POST":   make([]*regexp.Regexp, 0),
+		"PUT":    make([]*regexp.Regexp, 0),
+		"DELETE": make([]*regexp.Regexp, 0),
+	}
+
+	return router
+}
+
+
+func (r *Router) Get(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1 ) *Route {
+	return r.addRoute("GET", name, pattern, product, version, handlers, apiMethod)
+}
+
+func (r *Router) Post(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("POST", name, pattern, product, version, handlers, apiMethod)
+}
+
+func (r *Router) Put(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("PUT", name, pattern, product, version, handlers, apiMethod)
+}
+
+func (r *Router) Delete(name string, pattern string, product string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("DELETE", name, pattern, product, version, handlers, apiMethod)
+}
+
+func (r *Router) addRoute(method string, name string, pattern string, product string, version string,  handlers []string, apiMethod product.Routes_v1) *Route {
+
+
+	route := newRoute(method, name, pattern, handlers, product, version, apiMethod)
+
+	r.routes[name] = route
+	r.routesByMethod[method] = append(r.routesByMethod[method], route)
+
+	return route
+}
+
+func (r *Router) FindRoute(name string) (route *Route, found bool) {
+	route, found = r.routes[name]
+
+	return
+}
+
+func (r *Router) ValidExtensions(extensions ...string) *Router {
+	r.validExtensions = extensions
+
+	return r
+}
+
+func (r *Router) Compile() *Router {
+	for method, _ := range r.routesByMethod {
+		pattern := ""
+		for i, route := range r.routesByMethod[method] {
+			pattern += "(?P<" + route.Name + ">/)" + strings.TrimLeft(route.pattern, "/") + "|"
+
+			if i > 0 && i%15 == 0 {
+				pattern = "^(?:" + strings.TrimRight(pattern, "|") + ")$"
+				r.regexesByMethod[method] = append(r.regexesByMethod[method], regexp.MustCompile(pattern))
+
+				continue
+			}
+		}
+
+		pattern = "^(?:" + strings.TrimRight(pattern, "|") + ")$"
+		r.regexesByMethod[method] = append(r.regexesByMethod[method], regexp.MustCompile(pattern))
+	}
+
+	return r
+}
+
+func (r *Router) extensionIsValid(ext string) bool {
+	for _, valid := range r.validExtensions {
+		if ext == valid {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (r *Router) Dispatch(method string, path string, product string, version string, client string) (*Route, map[string]interface{}) {
+	regex := regexp.MustCompile(`\.([^\.]+)$`)
+	params := make(map[string]interface{})
+	var ext string
+	var match []string
+	var rrt *Route
+
+	if extMatch := regex.FindString(path); extMatch != "" {
+		ext = strings.Replace(extMatch, ".", "", 1)
+		path = regex.ReplaceAllLiteralString(path, "")
+	}
+
+	if !r.extensionIsValid(ext) {
+		return nil, nil
+	}
+
+
+
+	for _, compiled := range r.regexesByMethod[method] {
+		if match = compiled.FindStringSubmatch(path); match == nil {
+			continue
+		}
+
+		for i, name := range compiled.SubexpNames() {
+
+			nm := strings.Split(name, "_")
+
+			if(len(nm)<2){
+				continue
+			}
+
+			if(nm[0]!=version || nm[1]!=product){
+				continue
+			}
+
+			paramLength := len(params)
+			if i == 0 || match[i] == "" {
+				if paramLength == 0 {
+					continue
+				}
+
+				// All Params have been set. Empty matches means all params have been captured
+				break
+			}
+
+
+
+			if paramLength == 0 {
+				// Capture the name and set the ext so len(params) returns 1 on next loop
+				rrt ,_ = r.FindRoute(name)
+
+				params["ext"] = ext
+
+				continue
+			}
+
+			if intValue, err := strconv.Atoi(match[i]); err == nil {
+				params[name] = intValue
+
+				continue
+			}
+
+			params[name] = match[i]
+		}
+
+		return rrt, params
+	}
+
+	return nil, nil
+}
+
+
