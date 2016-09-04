@@ -2,17 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="60a62daf-4cbc-41ee-acea-c04bf8204a22" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/util/logger/basic.go" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/util/logger/fields.go" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/util/logger/formatter.go" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/util/logger/logger.go" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/handlers/metrics/metrics.go" afterPath="$PROJECT_DIR$/handlers/jwt/jwt.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/handlers/handler.go" afterPath="$PROJECT_DIR$/handlers/handler.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mn.go" afterPath="$PROJECT_DIR$/mn.go" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/proxy/goway-proxy.go" afterPath="$PROJECT_DIR$/proxy/goway-proxy.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/proxy/logger.go" afterPath="$PROJECT_DIR$/proxy/logger.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/proxy/transport.go" afterPath="$PROJECT_DIR$/proxy/transport.go" />
     </list>
     <ignored path="goway.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -39,8 +29,8 @@
       <file leaf-file-name="goway-proxy.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/proxy/goway-proxy.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="136" column="77" selection-start-line="136" selection-start-column="77" selection-end-line="136" selection-end-column="77" />
+            <state relative-caret-position="179">
+              <caret line="140" column="91" selection-start-line="140" selection-start-column="91" selection-end-line="140" selection-end-column="91" />
               <folding>
                 <element signature="e#15#240#0" expanded="true" />
               </folding>
@@ -643,9 +633,9 @@
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329429" sideWeight="0.503231" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32599118" sideWeight="0.49676898" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32599118" sideWeight="0.49676898" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32599118" sideWeight="0.49676898" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32599118" sideWeight="0.49676898" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25767368" sideWeight="0.49126637" order="0" side_tool="false" content_ui="tabs" />
@@ -1109,8 +1099,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/proxy/goway-proxy.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="136" column="77" selection-start-line="136" selection-start-column="77" selection-end-line="136" selection-end-column="77" />
+        <state relative-caret-position="179">
+          <caret line="140" column="91" selection-start-line="140" selection-start-column="91" selection-end-line="140" selection-end-column="91" />
           <folding>
             <element signature="e#15#240#0" expanded="true" />
           </folding>

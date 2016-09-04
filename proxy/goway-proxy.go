@@ -20,6 +20,7 @@ const (
 	API_NOT_FOUND = "API_NOT_FOUND"
 	ROUTE_NOT_FOUND = "ROUTE_NOT_FOUND"
 	AUTHENTICATION_HANDLER = "AUTHENTICATION"
+	CUSTOM_HANDLER = "HANDLER_ERROR"
 )
 
 type GoWayProxy struct{
@@ -135,6 +136,9 @@ func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.Inj
 	if(!result){
 		if(v==AUTHENTICATION_HANDLER){
 			http.Error(w, NewHttpResponse(http.StatusUnauthorized, AUTHENTICATION_HANDLER), http.StatusUnauthorized)
+			return
+		}else{
+			http.Error(w, NewHttpResponse(http.StatusBadRequest, CUSTOM_HANDLER), http.StatusBadRequest)
 			return
 		}
 	}
