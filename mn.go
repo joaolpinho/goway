@@ -8,7 +8,7 @@ import (
 	"github.com/andrepinto/goway/router"
 	"github.com/andrepinto/goway/product"
 	"github.com/andrepinto/goway/handlers"
-	metrics "github.com/andrepinto/goway/handlers/metrics"
+	jwt "github.com/andrepinto/goway/handlers/jwt"
 
 )
 
@@ -32,9 +32,11 @@ func main()  {
 	gowayClientRouter.LoadRoutes(productResource.GetAllClients())
 
 	handlersWork := handlers.NewHandlerWorker()
-	handlersWork.Add("METRICS", metrics.Metrics)
+	handlersWork.Add("AUTHENTICATION", jwt.Jwt)
 
-	gowayProxy := proxy.NewGoWayProxy(*url, gowayProductRouter, gowayClientRouter, handlersWork)
+	httpRequestLog := proxy.NewBasicLog()
+
+	gowayProxy := proxy.NewGoWayProxy(*url, gowayProductRouter, gowayClientRouter, handlersWork, httpRequestLog)
 
 	// server
 	http.HandleFunc("/", gowayProxy.Handle)

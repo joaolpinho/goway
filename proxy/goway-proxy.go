@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-
 )
 
 const (
@@ -18,6 +17,9 @@ const (
 	GOWAY_PRODUCT= "GOWAY_PRODUCT"
 	GOWAY_CLIENT= "GOWAY_CLIENT"
 	GOWAY_VERSION = "GOWAY_VERSION"
+	API_NOT_FOUND = "API_NOT_FOUND"
+	ROUTE_NOT_FOUND = "ROUTE_NOT_FOUND"
+	AUTHENTICATION_HANDLER = "AUTHENTICATION"
 )
 
 type GoWayProxy struct{
@@ -26,22 +28,23 @@ type GoWayProxy struct{
 	productRouter       	*router.GowayProductRouter
 	clientRouter        	*router.GowayClientRouter
 	handlerWorker		*handlers.HandlerWorker
+	HttpRequestLog 		HttpRequestLog
 }
 
-func NewGoWayProxy(target string, productRouter *router.GowayProductRouter, clientRouter *router.GowayClientRouter, handlerWorker *handlers.HandlerWorker) *GoWayProxy{
+func NewGoWayProxy(target string, productRouter *router.GowayProductRouter, clientRouter *router.GowayClientRouter, handlerWorker *handlers.HandlerWorker, httpRequestLog HttpRequestLog) *GoWayProxy{
 	url, _ := url.Parse(target)
 	proxy := httputil.NewSingleHostReverseProxy(url)
-	proxy.Transport = &transport{http.DefaultTransport}
+	proxy.Transport = &transport{http.DefaultTransport, httpRequestLog}
 
 	return &GoWayProxy{
 		proxy: proxy,
-		//target: "",
+		//target: target,
 		productRouter: productRouter,
 		clientRouter: clientRouter,
 		handlerWorker: handlerWorker,
+		HttpRequestLog: httpRequestLog,
 	}
 }
-
 
 
 func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
@@ -56,9 +59,8 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
 	r.URL.Path = newPath
 
 
-
 	if(!rs){
-		http.Error(w, "API_NOT_FOUND", http.StatusNotFound)
+		http.Error(w, NewHttpResponse(http.StatusNotFound, API_NOT_FOUND), http.StatusNotFound)
 		return
 	}
 
@@ -74,7 +76,8 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
 		if(rs){
 			p.redirect(route, cl.GlobalInjectData, w, r, cl.Product, cl.Client, cl.Version)
 		}else{
-			http.Error(w, "ROUTE_NOT_FOUND", http.StatusNotFound)
+
+			http.Error(w, NewHttpResponse(http.StatusNotFound, API_NOT_FOUND), http.StatusNotFound)
 			return
 		}
 	}
@@ -128,7 +131,13 @@ func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.Inj
 	}
 
 
-	p.dispatchHandlers(route)
+	result, v :=p.dispatchHandlers(route, r)
+	if(!result){
+		if(v==AUTHENTICATION_HANDLER){
+			http.Error(w, NewHttpResponse(http.StatusUnauthorized, AUTHENTICATION_HANDLER), http.StatusUnauthorized)
+			return
+		}
+	}
 
 	r.URL.Path = fmt.Sprintf("%s%s", route.ApiMethod.ServiceName, r.URL.Path)
 
@@ -137,10 +146,6 @@ func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.Inj
 	r.Header.Add(GOWAY_VERSION, version)
 
 	p.proxy.ServeHTTP(w, r)
-
-
-
-
 
 }
 
@@ -167,9 +172,14 @@ func(p *GoWayProxy) injectDataValues(values []product.InjectData_v1, r *http.Req
 	}
 }
 
-func(p *GoWayProxy) dispatchHandlers(route *router.Route){
+func(p *GoWayProxy) dispatchHandlers(route *router.Route, r *http.Request)(bool, string){
 	for _, v := range route.ApiMethod.Handlers{
-		p.handlerWorker.Run(v, route)
+		result := p.handlerWorker.Run(v, route, r)
+		if(!result){
+			return result, v
+		}
 	}
+
+	return true, ""
 
 }

@@ -3,7 +3,6 @@ package proxy
 import (
 	"io/ioutil"
 	"net/http"
-	"fmt"
 	"time"
 	"strings"
 	"bytes"
@@ -12,7 +11,7 @@ import (
 
 type transport struct {
 	http.RoundTripper
-
+	httpRequestLog HttpRequestLog
 }
 
 
@@ -67,7 +66,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	log.Time = finishTime.UTC()
 	log.ElapsedTime = finishTime.Sub(startTime)
 
-	fmt.Println(log)
+	t.httpRequestLog.Log(log)
 
 
 

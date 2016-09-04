@@ -1,8 +1,11 @@
 package handlers
-import "github.com/andrepinto/goway/router"
+import (
+	"github.com/andrepinto/goway/router"
+	"net/http"
+)
 
 
-type HandlerFunc func(route *router.Route)(bool)
+type HandlerFunc func(route *router.Route, r *http.Request)(bool)
 
 type HandlerMap map[string]HandlerFunc
 
@@ -27,13 +30,11 @@ func (hl *HandlerWorker) Add(action string, handler HandlerFunc) {
 }
 
 
-func (hl *HandlerWorker) Run(handler string, route *router.Route) bool{
+func (hl *HandlerWorker) Run(handler string, route *router.Route, r *http.Request) bool{
 	fn := hl.HandlerMap[handler]
 	if fn == nil {
 		return false
 	}
 
-	fn(route)
-
-	return true
+	return fn(route, r)
 }

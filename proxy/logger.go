@@ -22,3 +22,6 @@ type LogRecord struct {
 
 }
 
+type HttpRequestLog interface {
+	Log(record *LogRecord)
+}
