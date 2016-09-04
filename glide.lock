@@ -1,6 +1,8 @@
-hash: 9215b299fd0f38c6566c45b757f815cc245339bc9716fd20ac8341a3939ec160
-updated: 2016-08-30T00:11:50.858029763+01:00
+hash: 891a92465875c23349c7f0ac7582e2d4760eee1b01d0573ee476d785ca548257
+updated: 2016-09-04T17:21:36.634860901+01:00
 imports:
+- name: github.com/elazarl/goproxy
+  version: de25c6ed252fdc01e23dae49d6a86742bd790b12
 - name: github.com/imdario/mergo
   version: 50d4dbd4eb0e84778abe37cefef140271d96fade
 devImports: []

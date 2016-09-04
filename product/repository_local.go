@@ -76,6 +76,26 @@ func(l *LocalProductRepository) GetAllClients() []Client_v1 {
 			RemoveApiPath: true,
 			Version: "1",
 			GlobalInjectData:[]InjectData_v1{
+
+			},
+			Routes: []Routes_v1{
+				Routes_v1{
+					ListenPath: "/auth/byemail",
+					Verb: "GET",
+					ServiceName: "authentication-custom",
+					Handlers: []string{"AUTHENTICATION", "METRICS"},
+					Code:"auth_by_email",
+					Roles: []string{},
+				},
+			},
+		},
+		Client_v1{
+			ApiPath:"121245782",
+			Product:"customer",
+			Client:"myorg2",
+			RemoveApiPath: true,
+			Version: "1",
+			GlobalInjectData:[]InjectData_v1{
 				InjectData_v1{
 					Where:"url",
 					Code: "orgs",
