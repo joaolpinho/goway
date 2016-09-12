@@ -1,4 +1,3 @@
 package: github.com/andrepinto/goway
 import:
-- package: github.com/imdario/mergo
-- package: github.com/elazarl/goproxy
+- package: gopkg.in/olivere/elastic.v2

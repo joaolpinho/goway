@@ -7,11 +7,11 @@ import (
 	"strings"
 	"bytes"
 	"strconv"
+	"github.com/andrepinto/goway/util/worker"
 )
 
 type transport struct {
 	http.RoundTripper
-	httpRequestLog HttpRequestLog
 }
 
 
@@ -33,14 +33,15 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		return nil, err
+
 	}
+
 
 	body := ioutil.NopCloser(bytes.NewReader(b))
 	resp.Body = body
 	resp.ContentLength = int64(len(b))
 	resp.Header.Set("Content-Length", strconv.Itoa(len(b)))
-	log := &LogRecord{
+	log := LogRecord{
 
 			Time:          startTime.UTC(),
 			Ip:            ip,
@@ -53,7 +54,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			Size:          0,
 			ElapsedTime:   time.Duration(0),
 			RequestHeader: req.Header,
-			Body:	       string(b[:]),
+			ResBody:	string(b[:]),
+			ReqBody: 	"",
 			ServicePath:   resp.Request.URL.Path,
 			Product:       req.Header.Get(GOWAY_PRODUCT),
 			Client:        req.Header.Get(GOWAY_CLIENT),
@@ -66,8 +68,12 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	log.Time = finishTime.UTC()
 	log.ElapsedTime = finishTime.Sub(startTime)
 
-	t.httpRequestLog.Log(log)
 
+	opt := map[string]string{}
+
+
+	job := worker.Job{Name: REQUEST_LOGGER_EMMIT, Resource: nil, Payload:log, Map:opt, Id:""}
+	worker.JobQueue <- job
 
 
 	return resp, nil

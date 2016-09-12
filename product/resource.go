@@ -6,35 +6,28 @@ const (
 )
 
 type ProductResourceOptions struct {
-	RepositoryType string
+	Repository IProductRepository
 }
 
 
 type ProductResource struct{
-	RepositoryType string
+	Repository IProductRepository
 }
 
 
 func NewProductResource(options *ProductResourceOptions) *ProductResource{
 
-	if(len(options.RepositoryType)==0){
-		options.RepositoryType = REPOSITORY_LOCAL
+	if(options.Repository==nil){
+		options.Repository = NewLocalRepository()
 	}
 
 	return &ProductResource{
-		RepositoryType: options.RepositoryType,
+		Repository: options.Repository,
 	}
 }
 
 func(r *ProductResource) GetRepository() IProductRepository{
-	switch r.RepositoryType {
-	case REPOSITORY_LOCAL:
-		return NewLocalRepository()
-
-	default:
-		return NewLocalRepository()
-	}
-
+	return r.Repository
 }
 
 

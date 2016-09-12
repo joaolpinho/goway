@@ -33,8 +33,10 @@ func (hl *HandlerWorker) Add(action string, handler HandlerFunc) {
 func (hl *HandlerWorker) Run(handler string, route *router.Route, r *http.Request) bool{
 	fn := hl.HandlerMap[handler]
 	if fn == nil {
-		return false
+		return true
 	}
 
-	return fn(route, r)
+	rs := fn(route, r)
+
+	return rs
 }

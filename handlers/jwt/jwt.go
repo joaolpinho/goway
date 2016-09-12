@@ -9,7 +9,7 @@ import (
 func Jwt(route *router.Route, r *http.Request)(bool){
 	fmt.Println("auth")
 	r.Header.Set("USERID","123456")
-	return false
+	return true
 }
 
 

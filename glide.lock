@@ -1,8 +1,6 @@
-hash: 891a92465875c23349c7f0ac7582e2d4760eee1b01d0573ee476d785ca548257
-updated: 2016-09-04T17:21:36.634860901+01:00
+hash: 6d01ff89b27dd790e7a9ca8fa2381a18fb8cceae282f7309ef6307de33db8475
+updated: 2016-09-04T23:32:19.43601596+01:00
 imports:
-- name: github.com/elazarl/goproxy
-  version: de25c6ed252fdc01e23dae49d6a86742bd790b12
-- name: github.com/imdario/mergo
-  version: 50d4dbd4eb0e84778abe37cefef140271d96fade
+- name: gopkg.in/olivere/elastic.v2
+  version: 4ca0a93672aab0aacb92e0ed205bdf1d3a81f9ed
 devImports: []

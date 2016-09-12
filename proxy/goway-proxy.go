@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"github.com/andrepinto/goway/util/worker"
 )
 
 const (
@@ -17,10 +18,11 @@ const (
 	GOWAY_PRODUCT= "GOWAY_PRODUCT"
 	GOWAY_CLIENT= "GOWAY_CLIENT"
 	GOWAY_VERSION = "GOWAY_VERSION"
-	API_NOT_FOUND = "API_NOT_FOUND"
+	API_ROUTE_NOT_FOUND = "API_ROUTE_NOT_FOUND"
 	ROUTE_NOT_FOUND = "ROUTE_NOT_FOUND"
 	AUTHENTICATION_HANDLER = "AUTHENTICATION"
 	CUSTOM_HANDLER = "HANDLER_ERROR"
+	API_KEY_NOT_FOUND = "API_KEY_NOT_FOUND"
 )
 
 type GoWayProxy struct{
@@ -30,20 +32,29 @@ type GoWayProxy struct{
 	clientRouter        	*router.GowayClientRouter
 	handlerWorker		*handlers.HandlerWorker
 	HttpRequestLog 		HttpRequestLog
+	TaskWorker 	        worker.ITaskWorker
 }
 
-func NewGoWayProxy(target string, productRouter *router.GowayProductRouter, clientRouter *router.GowayClientRouter, handlerWorker *handlers.HandlerWorker, httpRequestLog HttpRequestLog) *GoWayProxy{
-	url, _ := url.Parse(target)
+type GowayProxyOptions struct {
+	Target 			string
+	ProductRouter 		*router.GowayProductRouter
+	ClientRouter 		*router.GowayClientRouter
+	HandlerWorker 		*handlers.HandlerWorker
+	TaskWorker 		worker.ITaskWorker
+}
+
+func NewGoWayProxy(options *GowayProxyOptions) *GoWayProxy{
+	url, _ := url.Parse(options.Target)
 	proxy := httputil.NewSingleHostReverseProxy(url)
-	proxy.Transport = &transport{http.DefaultTransport, httpRequestLog}
+	proxy.Transport = &transport{http.DefaultTransport}
 
 	return &GoWayProxy{
 		proxy: proxy,
 		//target: target,
-		productRouter: productRouter,
-		clientRouter: clientRouter,
-		handlerWorker: handlerWorker,
-		HttpRequestLog: httpRequestLog,
+		productRouter	: options.ProductRouter,
+		clientRouter	: options.ClientRouter,
+		handlerWorker	: options.HandlerWorker,
+		TaskWorker	: options.TaskWorker,
 	}
 }
 
@@ -61,7 +72,7 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
 
 
 	if(!rs){
-		http.Error(w, NewHttpResponse(http.StatusNotFound, API_NOT_FOUND), http.StatusNotFound)
+		http.Error(w, NewHttpResponse(http.StatusNotFound, API_KEY_NOT_FOUND), http.StatusNotFound)
 		return
 	}
 
@@ -78,7 +89,7 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
 			p.redirect(route, cl.GlobalInjectData, w, r, cl.Product, cl.Client, cl.Version)
 		}else{
 
-			http.Error(w, NewHttpResponse(http.StatusNotFound, API_NOT_FOUND), http.StatusNotFound)
+			http.Error(w, NewHttpResponse(http.StatusNotFound, API_ROUTE_NOT_FOUND), http.StatusNotFound)
 			return
 		}
 	}

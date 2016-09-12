@@ -38,6 +38,27 @@ func(l *LocalProductRepository) GetAllProducts() []Product_v1 {
 					},
 					InjectGlobalData:true,
 				},
+				Routes_v1{
+					ListenPath: "/api/facets",
+					Verb: "POST",
+					ServiceName: "authentication",
+					Handlers: []string{"AUTHENTICATION", "METRICS"},
+					Code:"auth_by_email",
+					Roles: []string{},
+					InjectData: []InjectData_v1{
+						InjectData_v1{
+							Where:"params",
+							Code: "paramId",
+							Value: "123456789",
+						},
+						InjectData_v1{
+							Where:"header",
+							Code: "headerId",
+							Value: "9999999999",
+						},
+					},
+					InjectGlobalData:true,
+				},
 			},
 		},
 		Product_v1{
