@@ -26,7 +26,7 @@ func main()  {
 		maxWorkers   	= flag.Int("max_workers", 20, "The number of workers to start")
 		maxQueueSize 	= flag.Int("max_queue_size", 20, "The size of job queue")
 		url 		= flag.String("url", "http://localhost:9000", "http://localhost:9000")
-		elasticUrl 	= flag.String("elasticUrl", "http://52.30.6.179:9200", "http://52.30.6.179:9200")
+		elasticUrl 	= flag.String("elasticUrl", "http://localhost:9200", "http://localhost:9200")
 		elasticIndex 	= flag.String("elasticIndex", "gateway", "gateway")
 		elasticType 	= flag.String("elasticType", "http-logger", "http-logger")
 	)
@@ -45,15 +45,6 @@ func main()  {
 
 
 	/* -------- INIT REPOSITORY --------- */
-
-	//_ = goway_couchbase_store.NewLocalRepository()
-	//
-	//repoCouch := goway_couchbase_store.NewCouchbaseRepository(&goway_couchbase_store.CouchbaseRepositoryOptions{
-	//	ConnectionString: "couchbase://52.30.6.179",
-	//	BucketName: "gateway",
-	//})
-
-	//repoCouch.CreateAndGet();
 
 	repoMongo := goway_mongodb_store.NewMongodbRepository(&goway_mongodb_store.MongodbRepositoryOptions{
 		Url:"localhost:27017",
