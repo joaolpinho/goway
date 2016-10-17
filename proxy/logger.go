@@ -29,6 +29,6 @@ type LogRecord struct {
 }
 
 type HttpRequestLog interface {
-	Log(record *LogRecord)
+	Log(record interface{})
 	Start() error
 }
