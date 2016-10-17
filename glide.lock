@@ -1,6 +1,0 @@
-hash: 6d01ff89b27dd790e7a9ca8fa2381a18fb8cceae282f7309ef6307de33db8475
-updated: 2016-09-04T23:32:19.43601596+01:00
-imports:
-- name: gopkg.in/olivere/elastic.v2
-  version: 4ca0a93672aab0aacb92e0ed205bdf1d3a81f9ed
-devImports: []

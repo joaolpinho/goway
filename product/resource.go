@@ -18,7 +18,7 @@ type ProductResource struct{
 func NewProductResource(options *ProductResourceOptions) *ProductResource{
 
 	if(options.Repository==nil){
-		options.Repository = NewLocalRepository()
+		panic("options.Repository is required")
 	}
 
 	return &ProductResource{

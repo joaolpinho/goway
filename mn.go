@@ -9,9 +9,10 @@ import (
 	"github.com/andrepinto/goway/product"
 	"github.com/andrepinto/goway/handlers"
 	jwt "github.com/andrepinto/goway/handlers/jwt"
-
-	"github.com/andrepinto/goway/custom"
 	"github.com/andrepinto/goway/util/worker"
+	"github.com/andrepinto/goway-elasticsearch-logging"
+	_ "encoding/json"
+	"github.com/andrepinto/goway-mongodb-store"
 )
 
 var httpRequestLog proxy.HttpRequestLog
@@ -25,6 +26,9 @@ func main()  {
 		maxWorkers   	= flag.Int("max_workers", 20, "The number of workers to start")
 		maxQueueSize 	= flag.Int("max_queue_size", 20, "The size of job queue")
 		url 		= flag.String("url", "http://localhost:9000", "http://localhost:9000")
+		elasticUrl 	= flag.String("elasticUrl", "http://52.30.6.179:9200", "http://52.30.6.179:9200")
+		elasticIndex 	= flag.String("elasticIndex", "gateway", "gateway")
+		elasticType 	= flag.String("elasticType", "http-logger", "http-logger")
 	)
 
 	flag.Parse()
@@ -39,12 +43,38 @@ func main()  {
 
 	dispatcher.Run(taskWork)
 
-	/* -------- END WORKERS --------- */
+
+	/* -------- INIT REPOSITORY --------- */
+
+	//_ = goway_couchbase_store.NewLocalRepository()
+	//
+	//repoCouch := goway_couchbase_store.NewCouchbaseRepository(&goway_couchbase_store.CouchbaseRepositoryOptions{
+	//	ConnectionString: "couchbase://52.30.6.179",
+	//	BucketName: "gateway",
+	//})
+
+	//repoCouch.CreateAndGet();
+
+	repoMongo := goway_mongodb_store.NewMongodbRepository(&goway_mongodb_store.MongodbRepositoryOptions{
+		Url:"localhost:27017",
+		DatabaseName:"goway",
+	});
+
+	//repoMongo.Create()
+	fmt.Println(repoMongo.GetAllProducts())
+
+	/* -------- INIT GOWAY --------- */
 
 
-	productResource := product.NewProductResource(&product.ProductResourceOptions{})
+	productResource := product.NewProductResource(&product.ProductResourceOptions{
+		Repository: repoMongo,
+	})
 
 	gowayProductRouter := router.NewGowayProductRouter()
+
+	//b, _ := json.Marshal(productResource.GetAllProducts())
+	//fmt.Println(b)
+
 
 	gowayProductRouter.LoadRoutes(productResource.GetAllProducts())
 
@@ -53,10 +83,10 @@ func main()  {
 	gowayClientRouter.LoadRoutes(productResource.GetAllClients())
 
 	handlersWork := handlers.NewHandlerWorker()
-	handlersWork.Add("AUTHENTICATION", jwt.Jwt)
+	handlersWork.Add(proxy.AUTHENTICATION_HANDLER, jwt.Jwt)
 
 	//httpRequestLog := proxy.NewBasicLog()
-	httpRequestLog = custom.NewElasticLog("http://52.30.6.179:9200", "gateway","http-logger")
+	httpRequestLog = goway_elasticsearch_logging.NewElasticLog(*elasticUrl, *elasticIndex, *elasticType)
 	httpRequestLog.Start()
 
 	gowayProxy := proxy.NewGoWayProxy(&proxy.GowayProxyOptions{

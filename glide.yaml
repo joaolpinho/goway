@@ -1,3 +1,0 @@
-package: github.com/andrepinto/goway
-import:
-- package: gopkg.in/olivere/elastic.v2
