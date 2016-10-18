@@ -32,7 +32,7 @@ type Routes_v1  struct {
 type InjectData_v1 struct {
 	Where 				string 				`json:"where"`
 	Code				string 				`json:"code"`
-	Value				string 				`json:"where"`
+	Value				string 				`json:"value"`
 }
 
 type Client_v1 struct {
