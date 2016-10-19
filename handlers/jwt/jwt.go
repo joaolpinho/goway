@@ -1,21 +1,36 @@
 package handlers
 
 import (
-	"fmt"
 	"regexp"
 	"net/http"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/andrepinto/goway/router"
 	"github.com/pkg/errors"
+	"github.com/dgrijalva/jwt-go"
+
+	. "github.com/andrepinto/goway/handlers"
+	"github.com/andrepinto/goway/router"
 )
 
 var regexpBearer = regexp.MustCompile("^Bearer\\s([A-Za-z0-9\\-\\._~\\+\\/]+=*)$")
 
+type OpCallback func ( *router.Route, *http.Request, *jwt.MapClaims ) *HandlerError
+type ErrCallback func (  *router.Route, *http.Request, *HandlerError) *HandlerError
 
-func opCallback( route *router.Route, r *http.Request, claim *jwt.MapClaims ) bool { return true }
-func errCallback(  route *router.Route, r *http.Request, err error ) bool { return false }
+//noinspection GoUnusedParameter
+func opCallback( route *router.Route, r *http.Request, claim *jwt.MapClaims ) *HandlerError { return nil }
+//noinspection GoUnusedParameter
+func errCallback(  route *router.Route, r *http.Request, err *HandlerError) *HandlerError {
+	return err
+}
 
 
+
+type JWTHandler struct {
+	Secret string
+	Algorithm 	*jwt.SigningMethodHMAC
+	OnSuccess	OpCallback
+	OnError		ErrCallback
+}
+//noinspection GoUnusedExportedFunction
 func NewJWTHandler( secret string, algorithm *jwt.SigningMethodHMAC ) (*JWTHandler) {
 	return &JWTHandler{
 		Secret: secret,
@@ -24,14 +39,11 @@ func NewJWTHandler( secret string, algorithm *jwt.SigningMethodHMAC ) (*JWTHandl
 		OnError: errCallback,
 	}
 }
-func MakeJWTHandler( secret string, algorithm *jwt.SigningMethodHMAC ) (JWTHandler) {
-	return *NewJWTHandler(secret, algorithm)
-}
 
 
 func ( handler *JWTHandler ) validateSignature(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		return nil, errors.New("Invalid token.")
 	}
 
 	return []byte(handler.Secret), nil
@@ -50,33 +62,31 @@ func (handler *JWTHandler) decode(tk string) (*jwt.MapClaims, error) {
 
 	claims, ok = token.Claims.(jwt.MapClaims);
 	if (!ok) {
-		return nil, errors.New("Invalid claim.")
+		return nil, errors.New("Token is invalid")
 	}
 	return  &claims, nil
 }
 
-func (handler *JWTHandler) Handle(route *router.Route, r *http.Request)(bool){
+func (handler *JWTHandler) Handle(route *router.Route, req *http.Request) (*HandlerError){
 
-	matches := regexpBearer.FindStringSubmatch(r.Header.Get("Authorization"))
+	matches := regexpBearer.FindStringSubmatch(req.Header.Get("Authorization"))
 
 
 	if ( len(matches) != 2 ) {
-		return false
+		return handler.OnError( route, req, NewHttpError(  http.StatusUnauthorized, "Unauthorized"))
 	}
 
 	claim, err := handler.decode(matches[1])
 	if (err != nil) {
-		fmt.Errorf("%s", err.Error())
-		return handler.OnError( route, r, err  )
+		return handler.OnError( route, req, NewHttpError( http.StatusUnauthorized, err.Error()))
 	}
 
 	if err := claim.Valid(); err != nil {
-		fmt.Errorf("%s", err.Error())
-		return handler.OnError( route, r, err  )
+		return handler.OnError( route, req, NewHttpError( http.StatusUnauthorized, err.Error()))
 	}
 
 
-	return handler.OnSuccess( route, r, claim )
+	return handler.OnSuccess( route, req, claim )
 }
 
 
