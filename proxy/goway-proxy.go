@@ -2,14 +2,18 @@ package proxy
 
 import (
 	"fmt"
-	"github.com/andrepinto/goway/router"
-	"github.com/andrepinto/goway/product"
+	"time"
+	"bytes"
 	"strings"
-	"github.com/andrepinto/goway/util"
-	"github.com/andrepinto/goway/handlers"
+	"net/url"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
+
+	. "github.com/andrepinto/goway"
+	"github.com/andrepinto/goway/router"
+	"github.com/andrepinto/goway/product"
+	"github.com/andrepinto/goway/util"
+	"github.com/andrepinto/goway/handlers"
 	"github.com/andrepinto/goway/util/worker"
 )
 
@@ -32,9 +36,10 @@ type GowayProxyOptions struct {
 	TaskWorker 		worker.ITaskWorker
 }
 
+//noinspection GoUnusedExportedFunction
 func NewGoWayProxy(options *GowayProxyOptions) *GoWayProxy{
-	url, _ := url.Parse(options.Target)
-	proxy := httputil.NewSingleHostReverseProxy(url)
+	target, _ := url.Parse(options.Target)
+	proxy := httputil.NewSingleHostReverseProxy(target)
 	proxy.Transport = &transport{http.DefaultTransport}
 
 	return &GoWayProxy{
@@ -48,43 +53,43 @@ func NewGoWayProxy(options *GowayProxyOptions) *GoWayProxy{
 }
 
 
-func (p *GoWayProxy) Handle(w http.ResponseWriter, r *http.Request) {
+func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 
-	//change
-	version := DEFAULT_VERSION
 	var rs bool
 	var route *router.Route
 
-	rs, cl, newPath := p.checkClient(r.URL.Path, version)
+	res :=  NewHttpResponse(w)
+	version := req.Header.Get(GOWAY_VERSION)
+	if ( version == "" ) {
+		req.Header.Set(GOWAY_VERSION, DEFAULT_VERSION)
+		version = DEFAULT_VERSION
+	}
 
-	r.URL.Path = newPath
+
+	rs, cl, newPath := p.checkClient(req.URL.Path, version)
+	req.URL.Path = newPath
 
 
-	if(!rs){
-		http.Error(w, NewHttpResponse(http.StatusNotFound, API_KEY_NOT_FOUND), http.StatusNotFound)
+	if(!rs) {
+		p.respond(req, res.Set( http.StatusNotFound, API_KEY_NOT_FOUND, nil) )
 		return
 	}
 
 	//check client routes
-	rs, route = p.checkRoute(newPath, r.Method, cl.Client, cl.Version, true)
-
+	rs, route = p.checkRoute(newPath, req.Method, cl.Client, cl.Version, true)
 	if(rs){
-		p.redirect(route, cl.GlobalInjectData, w, r, cl.Product, cl.Client, cl.Version)
-	}else{
-		//check product routes
-		rs, route = p.checkRoute(newPath, r.Method, cl.Product, cl.Version, false)
-
-		if(rs){
-			p.redirect(route, cl.GlobalInjectData, w, r, cl.Product, cl.Client, cl.Version)
-		}else{
-
-			http.Error(w, NewHttpResponse(http.StatusNotFound, API_ROUTE_NOT_FOUND), http.StatusNotFound)
-			return
-		}
+		p.redirect(route, cl.GlobalInjectData, req, res, cl.Product, cl.Client, cl.Version)
+		return
 	}
 
+	//check product routes
+	rs, route = p.checkRoute(newPath, req.Method, cl.Product, cl.Version, false)
+	if(rs){
+		p.redirect(route, cl.GlobalInjectData, req, res, cl.Product, cl.Client, cl.Version)
+		return
+	}
 
-
+	p.respond(req, res.Set(http.StatusNotFound, API_ROUTE_NOT_FOUND, nil) )
 }
 
 func(p *GoWayProxy) checkRoute(path string, verb string, code string, version string, client bool) (bool, *router.Route){
@@ -104,7 +109,6 @@ func(p *GoWayProxy) checkRoute(path string, verb string, code string, version st
 	}
 }
 
-
 func(p *GoWayProxy) checkClient(path string, version string) (bool, *product.Client_v1, string){
 	urlSplit := strings.Split(path, "/")
 
@@ -123,33 +127,66 @@ func(p *GoWayProxy) checkClient(path string, version string) (bool, *product.Cli
 	return true, client, urlWithoutApiId
 }
 
-func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.InjectData_v1, w http.ResponseWriter, r *http.Request, product string, client string, version string){
+func(p *GoWayProxy) respond( req *http.Request, res *HttpResponse ) {
+
+	response := res.Dispatch( req.Header.Get("Accept") )
+	end := time.Now()
+
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(req.Body)
+	request := buf.String()
+
+	log := LogRecord{
+
+		Time:          	end.UTC(),
+		Ip:            	strings.Split(req.RemoteAddr, ":")[0],
+		Method:        	req.Method,
+		Uri:           	req.RequestURI,
+		Username:      	"",
+		Protocol:      	req.Proto,
+		Host:          	req.Host,
+		Status:        	res.Status,
+		Size:          	0,
+		ElapsedTime:   	end.Sub(res.StartTime),
+		RequestHeader: 	req.Header,
+		ResBody:		response,
+		ReqBody: 		request,
+		ServicePath:   	req.URL.Path,
+		Product:       	req.Header.Get(GOWAY_PRODUCT),
+		Client:        	req.Header.Get(GOWAY_CLIENT),
+		Version:       	req.Header.Get(GOWAY_VERSION),
+
+	}
+
+	opt := map[string]string{}
+	job := worker.Job{Name: REQUEST_LOGGER_EMMIT, Resource: nil, Payload:log, Map:opt, Id:""}
+	worker.JobQueue <- job
+}
+
+func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.InjectData_v1, req *http.Request, res *HttpResponse, product string, client string, version string) {
 
 	if(route.ApiMethod.InjectGlobalData){
-		p.injectDataValues(util.MergeInjectData(globalInjectData,route.ApiMethod.InjectData), r)
+		p.injectDataValues(util.MergeInjectData(globalInjectData,route.ApiMethod.InjectData), req)
 	}else{
-		p.injectDataValues(route.ApiMethod.InjectData, r)
+		p.injectDataValues(route.ApiMethod.InjectData, req)
 	}
 
 
-	result, v :=p.dispatchHandlers(route, r)
-	if(!result){
-		if(v==AUTHENTICATION_HANDLER){
-			http.Error(w, NewHttpResponse(http.StatusUnauthorized, AUTHENTICATION_HANDLER), http.StatusUnauthorized)
-			return
-		}else{
-			http.Error(w, NewHttpResponse(http.StatusBadRequest, CUSTOM_HANDLER), http.StatusBadRequest)
-			return
-		}
+	err := p.dispatchHandlers(route, req)
+	if(err != nil){
+		p.respond( req, res.Set( err.Status, err.Message, err.Data ) )
+		return
 	}
 
-	r.URL.Path = fmt.Sprintf("%s%s", route.ApiMethod.ServiceName, r.URL.Path)
+	req.URL.Path = fmt.Sprintf("%s%s", route.ApiMethod.ServiceName, req.URL.Path)
 
-	r.Header.Add(GOWAY_PRODUCT, product)
-	r.Header.Add(GOWAY_CLIENT, client)
-	r.Header.Add(GOWAY_VERSION, version)
+	req.Header.Add(GOWAY_PRODUCT, product)
+	req.Header.Add(GOWAY_CLIENT, client)
+	req.Header.Add(GOWAY_VERSION, version)
 
-	p.proxy.ServeHTTP(w, r)
+	res.ResponseWriter.Header().Set("X-Content-Type-Options", "nosniff")
+	p.proxy.ServeHTTP(res.ResponseWriter, req)
 
 }
 
@@ -176,14 +213,14 @@ func(p *GoWayProxy) injectDataValues(values []product.InjectData_v1, r *http.Req
 	}
 }
 
-func(p *GoWayProxy) dispatchHandlers(route *router.Route, r *http.Request)(bool, string){
+func(p *GoWayProxy) dispatchHandlers(route *router.Route, req *http.Request) (*handlers.HandlerError){
+
 	for _, v := range route.ApiMethod.Handlers{
-		result := p.handlerWorker.Run(v, route, r)
-		if(!result){
-			return result, v
+		response := p.handlerWorker.Run(v, route, req)
+		if(response != nil){
+			return response
 		}
 	}
 
-	return true, ""
-
+	return nil
 }
