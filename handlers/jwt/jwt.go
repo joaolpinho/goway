@@ -42,6 +42,8 @@ func NewJWTHandler( secret string, algorithm *jwt.SigningMethodHMAC ) (*JWTHandl
 
 
 func ( handler *JWTHandler ) validateSignature(token *jwt.Token) (interface{}, error) {
+
+	//@TODO validate against handler.Algorithm
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, errors.New("Invalid token.")
 	}
