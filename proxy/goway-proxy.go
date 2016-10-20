@@ -147,7 +147,7 @@ func(p *GoWayProxy) respond( req *http.Request, res *HttpResponse ) {
 		Protocol:      	req.Proto,
 		Host:          	req.Host,
 		Status:        	res.Status,
-		Size:          	0,
+		Size:          	int64(len(response)),
 		ElapsedTime:   	end.Sub(res.StartTime),
 		RequestHeader: 	req.Header,
 		ResBody:		response,
