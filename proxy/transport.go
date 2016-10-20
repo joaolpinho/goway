@@ -15,66 +15,72 @@ type transport struct {
 }
 
 
-func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func (t *transport) RoundTrip(req *http.Request) (res *http.Response, err error) {
+
+
+
+	reqBodyBytes, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	req.Body.Close()
+
+	reqBody := ioutil.NopCloser(bytes.NewReader(reqBodyBytes))
+	req.Body = reqBody
+
+
 
 	startTime := time.Now()
 
-	ip := strings.Split(req.RemoteAddr, ":")[0]
-
-
-	resp, err = t.RoundTripper.RoundTrip(req)
+	res, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
 		return nil, err
-	}
-	b, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		return nil, err
-	}
-	err = resp.Body.Close()
-	if err != nil {
-
-	}
-
-
-	body := ioutil.NopCloser(bytes.NewReader(b))
-	resp.Body = body
-	resp.ContentLength = int64(len(b))
-	resp.Header.Set("Content-Length", strconv.Itoa(len(b)))
-	log := LogRecord{
-
-			Time:          startTime.UTC(),
-			Ip:            ip,
-			Method:        req.Method,
-			Uri:           req.RequestURI,
-			Username:      "",
-			Protocol:      req.Proto,
-			Host:          req.Host,
-			Status:        resp.StatusCode,
-			Size:          0,
-			ElapsedTime:   time.Duration(0),
-			RequestHeader: req.Header,
-			ResBody:	string(b[:]),
-			ReqBody: 	"",
-			ServicePath:   resp.Request.URL.Path,
-			Product:       req.Header.Get(GOWAY_PRODUCT),
-			Client:        req.Header.Get(GOWAY_CLIENT),
-			Version:       req.Header.Get(GOWAY_VERSION),
-
 	}
 
 	finishTime := time.Now()
 
-	log.Time = finishTime.UTC()
-	log.ElapsedTime = finishTime.Sub(startTime)
 
+
+	ip := strings.Split(req.RemoteAddr, ":")[0]
+
+	resBodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	res.Body.Close()
+
+	resBody := ioutil.NopCloser(bytes.NewReader(resBodyBytes))
+	res.Body = resBody
+	res.ContentLength = int64(len(resBodyBytes))
+	res.Header.Set("Content-Length", strconv.Itoa(len(resBodyBytes)))
+
+
+	log := LogRecord{
+
+		Time:           finishTime.UTC(),
+		Ip:            	ip,
+		Method:        	req.Method,
+		Uri:           	req.RequestURI,
+		Username:      	"",
+		Protocol:      	req.Proto,
+		Host:          	req.Host,
+		Status:        	res.StatusCode,
+		Size:          	res.ContentLength,
+		ElapsedTime:   	finishTime.Sub(startTime),
+		RequestHeader: 	req.Header,
+		ReqBody:		string(reqBodyBytes),
+		ResBody:		string(resBodyBytes),
+		ServicePath:   	res.Request.URL.Path,
+		Product:       	req.Header.Get(GOWAY_PRODUCT),
+		Client:        	req.Header.Get(GOWAY_CLIENT),
+		Version:       	req.Header.Get(GOWAY_VERSION),
+
+	}
 
 	opt := map[string]string{}
-
-
 	job := worker.Job{Name: REQUEST_LOGGER_EMMIT, Resource: nil, Payload:log, Map:opt, Id:""}
 	worker.JobQueue <- job
 
 
-	return resp, nil
+	return res, nil
 }

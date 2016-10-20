@@ -6,6 +6,7 @@ import(
 	"net/http"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 )
 
 type HttpResponse struct {
@@ -43,16 +44,18 @@ func ( res *HttpResponse ) Dispatch( mime string ) string {
 	res.Success = res.Status >= 200 && res.Status < 300
 
 	switch mime {
-
 	case "application/json":
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		body, _ = json.Marshal(res)
 		break
 
 	case "text/xml":
 	case "application/xml":
+		w.Header().Set("Content-Type", fmt.Sprintf("%s; charset=utf-8", mime))
 		body, _ = xml.Marshal(res)
 		break
 	default:
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		body = []byte(res.Message)
 		break
 	}

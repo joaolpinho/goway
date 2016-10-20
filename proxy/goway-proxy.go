@@ -69,6 +69,8 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	rs, cl, newPath := p.checkClient(req.URL.Path, version)
 	req.URL.Path = newPath
 
+	req.Header.Set(GOWAY_PRODUCT, cl.Product)
+	req.Header.Set(GOWAY_CLIENT, cl.Client)
 
 	if(!rs) {
 		p.respond(req, res.Set( http.StatusNotFound, API_KEY_NOT_FOUND, nil) )
@@ -78,14 +80,14 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	//check client routes
 	rs, route = p.checkRoute(newPath, req.Method, cl.Client, cl.Version, true)
 	if(rs){
-		p.redirect(route, cl.GlobalInjectData, req, res, cl.Product, cl.Client, cl.Version)
+		p.redirect(route, cl.GlobalInjectData, req, res)
 		return
 	}
 
 	//check product routes
 	rs, route = p.checkRoute(newPath, req.Method, cl.Product, cl.Version, false)
 	if(rs){
-		p.redirect(route, cl.GlobalInjectData, req, res, cl.Product, cl.Client, cl.Version)
+		p.redirect(route, cl.GlobalInjectData, req, res)
 		return
 	}
 
@@ -147,7 +149,7 @@ func(p *GoWayProxy) respond( req *http.Request, res *HttpResponse ) {
 		Protocol:      	req.Proto,
 		Host:          	req.Host,
 		Status:        	res.Status,
-		Size:          	0,
+		Size:          	int64(len(response)),
 		ElapsedTime:   	end.Sub(res.StartTime),
 		RequestHeader: 	req.Header,
 		ResBody:		response,
@@ -164,14 +166,13 @@ func(p *GoWayProxy) respond( req *http.Request, res *HttpResponse ) {
 	worker.JobQueue <- job
 }
 
-func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.InjectData_v1, req *http.Request, res *HttpResponse, product string, client string, version string) {
+func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.InjectData_v1, req *http.Request, res *HttpResponse) {
 
 	if(route.ApiMethod.InjectGlobalData){
 		p.injectDataValues(util.MergeInjectData(globalInjectData,route.ApiMethod.InjectData), req)
 	}else{
 		p.injectDataValues(route.ApiMethod.InjectData, req)
 	}
-
 
 	err := p.dispatchHandlers(route, req)
 	if(err != nil){
@@ -181,9 +182,6 @@ func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.Inj
 
 	req.URL.Path = fmt.Sprintf("%s%s", route.ApiMethod.ServiceName, req.URL.Path)
 
-	req.Header.Add(GOWAY_PRODUCT, product)
-	req.Header.Add(GOWAY_CLIENT, client)
-	req.Header.Add(GOWAY_VERSION, version)
 
 	res.ResponseWriter.Header().Set("X-Content-Type-Options", "nosniff")
 	p.proxy.ServeHTTP(res.ResponseWriter, req)
