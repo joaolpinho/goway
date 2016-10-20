@@ -81,14 +81,14 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	//check client routes
 	rs, route = p.checkRoute(newPath, req.Method, cl.Client, cl.Version, true)
 	if(rs){
-		p.redirect(route, cl.GlobalInjectData, req, res, cl.Product, cl.Client, cl.Version)
+		p.redirect(route, cl.GlobalInjectData, req, res)
 		return
 	}
 
 	//check product routes
 	rs, route = p.checkRoute(newPath, req.Method, cl.Product, cl.Version, false)
 	if(rs){
-		p.redirect(route, cl.GlobalInjectData, req, res, cl.Product, cl.Client, cl.Version)
+		p.redirect(route, cl.GlobalInjectData, req, res)
 		return
 	}
 
@@ -167,7 +167,7 @@ func(p *GoWayProxy) respond( req *http.Request, res *HttpResponse ) {
 	worker.JobQueue <- job
 }
 
-func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.InjectData_v1, req *http.Request, res *HttpResponse, product string, client string, version string) {
+func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.InjectData_v1, req *http.Request, res *HttpResponse) {
 
 	if(route.ApiMethod.InjectGlobalData){
 		p.injectDataValues(util.MergeInjectData(globalInjectData,route.ApiMethod.InjectData), req)
