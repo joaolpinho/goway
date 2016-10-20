@@ -69,9 +69,8 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	rs, cl, newPath := p.checkClient(req.URL.Path, version)
 	req.URL.Path = newPath
 
-	req.Header.Add(GOWAY_PRODUCT, cl.Product)
-	req.Header.Add(GOWAY_CLIENT, cl.Client)
-	req.Header.Add(GOWAY_VERSION, version)
+	req.Header.Set(GOWAY_PRODUCT, cl.Product)
+	req.Header.Set(GOWAY_CLIENT, cl.Client)
 
 	if(!rs) {
 		p.respond(req, res.Set( http.StatusNotFound, API_KEY_NOT_FOUND, nil) )
