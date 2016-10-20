@@ -172,6 +172,10 @@ func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.Inj
 		p.injectDataValues(route.ApiMethod.InjectData, req)
 	}
 
+	req.Header.Add(GOWAY_PRODUCT, product)
+	req.Header.Add(GOWAY_CLIENT, client)
+	req.Header.Add(GOWAY_VERSION, version)
+
 
 	err := p.dispatchHandlers(route, req)
 	if(err != nil){
@@ -181,9 +185,6 @@ func(p *GoWayProxy) redirect(route *router.Route, globalInjectData []product.Inj
 
 	req.URL.Path = fmt.Sprintf("%s%s", route.ApiMethod.ServiceName, req.URL.Path)
 
-	req.Header.Add(GOWAY_PRODUCT, product)
-	req.Header.Add(GOWAY_CLIENT, client)
-	req.Header.Add(GOWAY_VERSION, version)
 
 	res.ResponseWriter.Header().Set("X-Content-Type-Options", "nosniff")
 	p.proxy.ServeHTTP(res.ResponseWriter, req)
