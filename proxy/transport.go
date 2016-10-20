@@ -52,7 +52,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			Protocol:      	req.Proto,
 			Host:          	req.Host,
 			Status:        	resp.StatusCode,
-			Size:          	int64(len(resp.Body)),
+			Size:          	resp.ContentLength,
 			ElapsedTime:   	time.Duration(0),
 			RequestHeader: 	req.Header,
 			ResBody:		string(b[:]),
