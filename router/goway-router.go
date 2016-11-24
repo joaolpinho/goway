@@ -29,6 +29,9 @@ func (r *GoWayRouter) CheckRoute(path string, verb string, code string, version 
 func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.Routes_v1)  {
 	for _, k := range routes{
 		r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, k.Code), k.ListenPath, k.Verb, code, version, k.Handlers, k)
+		if(len(k.Alias)>0){
+			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, fmt.Sprintf("%s_$alias",k.Code)), k.Alias, k.Verb, code, version, k.Handlers, k)
+		}
 	}
 }
 
