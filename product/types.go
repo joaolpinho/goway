@@ -27,6 +27,7 @@ type Routes_v1  struct {
 	InjectGlobalData		bool				`json:"inject_global_data"`
 	Asset				string				`json:"asset"`
 	AssetId				string				`json:"asset_id"`
+	Alias				string				`json:"alias"`
 }
 
 type InjectData_v1 struct {
