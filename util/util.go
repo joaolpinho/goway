@@ -28,3 +28,26 @@ func MergeInjectData(global []product.InjectData_v1, method []product.InjectData
 
 	return result
 }
+
+
+func FilterClientRoutesByAsset(cl []product.Client_v1, asset string, f func(product.Routes_v1, string) bool) []product.Client_v1 {
+	clients := make([]product.Client_v1, 0)
+	for _, c := range cl {
+		routes := make([]product.Routes_v1, 0)
+		for _, v := range c.Routes {
+			if f(v, asset) {
+				routes = append(routes, v)
+			}
+		}
+
+		c.Routes = routes
+		clients = append(clients, c)
+	}
+
+
+	return clients
+}
+
+func FilterByAsset(route product.Routes_v1, asset string) bool{
+	return route.Asset==asset
+}
