@@ -30,7 +30,7 @@ func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.
 	for _, k := range routes{
 		r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, k.Code), k.ListenPath, k.Verb, code, version, k.Handlers, k)
 		if(len(k.Alias)>0){
-			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, fmt.Sprintf("%s_$alias",k.Code)), k.Alias, k.Verb, code, version, k.Handlers, k)
+			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, fmt.Sprintf("%s_alias",k.Code)), k.Alias, k.Verb, code, version, k.Handlers, k)
 		}
 	}
 }
