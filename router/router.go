@@ -116,16 +116,13 @@ func (r *Router) extensionIsValid(ext string) bool {
 }
 
 func (r *Router) Dispatch(method string, path string, code string, version string) (*Route, map[string]interface{}) {
-	regex := regexp.MustCompile(`\.([^\.]+)$`)
+
 	params := make(map[string]interface{})
 	var ext string
 	var match []string
 	var rrt *Route
 
-	if extMatch := regex.FindString(path); extMatch != "" {
-		ext = strings.Replace(extMatch, ".", "", 1)
-		path = regex.ReplaceAllLiteralString(path, "")
-	}
+
 
 	if !r.extensionIsValid(ext) {
 		return nil, nil
