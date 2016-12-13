@@ -32,6 +32,7 @@ func NewRouter() *Router {
 		"POST":   make([]*Route, 0),
 		"PUT":    make([]*Route, 0),
 		"DELETE": make([]*Route, 0),
+		"OPTIONS": make([]*Route, 0),
 	}
 
 	router.regexesByMethod = map[string][]*regexp.Regexp{
@@ -39,6 +40,7 @@ func NewRouter() *Router {
 		"POST":   make([]*regexp.Regexp, 0),
 		"PUT":    make([]*regexp.Regexp, 0),
 		"DELETE": make([]*regexp.Regexp, 0),
+		"OPTIONS": make([]*regexp.Regexp, 0),
 	}
 
 	return router
@@ -59,6 +61,10 @@ func (r *Router) Put(name string, pattern string, code string, version string, h
 
 func (r *Router) Delete(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
 	return r.addRoute("DELETE", name, pattern, code, version, handlers, apiMethod)
+}
+
+func (r *Router) Options(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("OPTIONS", name, pattern, code, version, handlers, apiMethod)
 }
 
 func (r *Router) addRoute(method string, name string, pattern string, code string, version string,  handlers []string, apiMethod product.Routes_v1) *Route {

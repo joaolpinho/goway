@@ -78,3 +78,10 @@ func Filter(vs []string, value string) bool {
 	}
 	return false
 }
+
+func PrepareUrl(url string) string{
+	if  url[len(url)-1] != '/' {
+		return fmt.Sprintf("%s/",url)
+	}
+	return  url
+}
