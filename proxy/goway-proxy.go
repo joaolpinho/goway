@@ -192,12 +192,14 @@ func(p *GoWayProxy) injectDataValues(values []product.InjectData_v1, r *http.Req
 	for _, v := range values{
 		if(v.Where==product.WHERE_HEADER){
 			//w.Header().Set(v.Code, v.Value)
+			r.Header.Del(v.Code)
 			r.Header.Add(v.Code, v.Value)
 			continue
 		}
 
 		if(v.Where==product.WHERE_PARAMS){
 			values := r.URL.Query()
+			values.Del(v.Code)
 			values.Add(v.Code, v.Value)
 			r.URL.RawQuery = values.Encode()
 			continue
