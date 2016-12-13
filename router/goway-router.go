@@ -7,14 +7,17 @@ import (
 
 type GoWayRouter struct {
 	Router *Router
+	AddOptionsRoute bool
 
 }
 
-func NewGoWayRouter() *GoWayRouter{
+func NewGoWayRouter(addOptionsRoute bool) *GoWayRouter{
 	return &GoWayRouter{
 		Router: NewRouter(),
+		AddOptionsRoute: addOptionsRoute,
 	}
 }
+
 
 func (r *GoWayRouter) Compile()  {
 	r.Router.Compile()
@@ -31,6 +34,9 @@ func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.
 		r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, k.Code), k.ListenPath, k.Verb, code, version, k.Handlers, k)
 		if(len(k.Alias)>0){
 			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, fmt.Sprintf("%s_alias",k.Code)), k.Alias, k.Verb, code, version, k.Handlers, k)
+		}
+		if(r.AddOptionsRoute){
+			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, k.Code), k.ListenPath, "OPTIONS", code, version, k.Handlers, k)
 		}
 	}
 }

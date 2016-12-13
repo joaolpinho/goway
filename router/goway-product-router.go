@@ -9,10 +9,13 @@ type GowayProductRouter struct  {
 	Products map[string]product.Product_v1
 }
 
+type GowayProductRouterOptions struct  {
+	AddOptionsRoute bool
+}
 
-func NewGowayProductRouter() *GowayProductRouter{
+func NewGowayProductRouter(options *GowayProductRouterOptions) *GowayProductRouter{
 	return &GowayProductRouter{
-		GoWayRouter: NewGoWayRouter(),
+		GoWayRouter: NewGoWayRouter(options.AddOptionsRoute),
 		Products: make(map[string]product.Product_v1),
 	}
 }

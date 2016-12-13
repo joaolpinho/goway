@@ -5,15 +5,19 @@ import (
 	"github.com/andrepinto/goway/util"
 )
 
+type GowayClientRouterOptions struct  {
+	AddOptionsRoute bool
+}
+
 type GowayClientRouter struct  {
 	GoWayRouter *GoWayRouter
 	Clients map[string]product.Client_v1
 }
 
 
-func NewGowayClientRouter() *GowayClientRouter{
+func NewGowayClientRouter(options *GowayClientRouterOptions) *GowayClientRouter{
 	return &GowayClientRouter{
-		GoWayRouter: NewGoWayRouter(),
+		GoWayRouter: NewGoWayRouter(options.AddOptionsRoute),
 		Clients: make(map[string]product.Client_v1),
 	}
 }
