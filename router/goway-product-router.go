@@ -5,19 +5,17 @@ import (
 )
 
 type GowayProductRouter struct  {
-	GoWayRouter *GoWayRouter
+	*GoWayRouter
 	Products map[string]product.Product_v1
 }
 
-type GowayProductRouterOptions struct  {
-	AddOptionsRoute bool
-}
-
-func NewGowayProductRouter(options *GowayProductRouterOptions) *GowayProductRouter{
-	return &GowayProductRouter{
-		GoWayRouter: NewGoWayRouter(options.AddOptionsRoute),
-		Products: make(map[string]product.Product_v1),
+//noinspection GoUnusedExportedFunction
+func NewGowayProductRouter( options ...RouterOptions) *GowayProductRouter{
+	r := &GowayProductRouter{
+		NewGoWayRouter(options...),
+		map[string]product.Product_v1{},
 	}
+	return r
 }
 
 
