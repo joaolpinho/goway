@@ -28,9 +28,3 @@ func (r *GowayProductRouter) LoadRoutes(products []product.Product_v1)  {
 
 	r.GoWayRouter.Compile()
 }
-
-
-func (r *GowayProductRouter) CheckRoute(path string, verb string, code string, version string) (*Route, map[string]interface{})  {
-	route, params := r.GoWayRouter.CheckRoute(path, verb, code, version)
-	return route, params
-}
