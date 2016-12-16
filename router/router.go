@@ -91,23 +91,36 @@ func (r *Router) ValidExtensions(extensions ...string) *Router {
 }
 
 func (r *Router) Compile() *Router {
-	for method, _ := range r.routesByMethod {
+	for method := range r.routesByMethod {
 		pattern := ""
 		for i, route := range r.routesByMethod[method] {
-			pattern += "(?P<" + route.Name + ">/)" + strings.TrimLeft(route.pattern, "/") + "|"
-
+			pattern += "(?P<" + route.Name + ">/)" + strings.TrimRight(strings.TrimLeft(route.pattern, "/"),"/") + "(?:/)?|"
 			if i > 0 && i%15 == 0 {
-				pattern = "^(?:" + strings.TrimRight(pattern, "|") + ")$"
-				r.regexesByMethod[method] = append(r.regexesByMethod[method], regexp.MustCompile(pattern))
-
+				r.regexesByMethod[method] = append(r.regexesByMethod[method], regexp.MustCompile("^(?:" + strings.TrimRight(pattern, "|") + ")$"))
+				pattern = ""
 				continue
 			}
 		}
-
 		pattern = "^(?:" + strings.TrimRight(pattern, "|") + ")$"
 		r.regexesByMethod[method] = append(r.regexesByMethod[method], regexp.MustCompile(pattern))
 	}
+	return r
+}
 
+func (r *Router) CompileStrict() *Router {
+	for method := range r.routesByMethod {
+		pattern := ""
+		for i, route := range r.routesByMethod[method] {
+			pattern += "(?P<" + route.Name + ">/)" + strings.TrimLeft(route.pattern, "/") + "|"
+			if i > 0 && i%15 == 0 {
+				r.regexesByMethod[method] = append(r.regexesByMethod[method], regexp.MustCompile("^(?:" + strings.TrimRight(pattern, "|") + ")$"))
+				pattern = ""
+				continue
+			}
+		}
+		pattern = "^(?:" + strings.TrimRight(pattern, "|") + ")$"
+		r.regexesByMethod[method] = append(r.regexesByMethod[method], regexp.MustCompile(pattern))
+	}
 	return r
 }
 

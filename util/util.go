@@ -9,6 +9,10 @@ func ClientCode(path string, version string) string{
 	return fmt.Sprint("[%s-%s]", version, path)
 }
 
+func ProductCode(path string, version string) string{
+	return fmt.Sprintf("[%s-%s]", version, path)
+}
+
 func MergeInjectData(global []product.InjectData_v1, method []product.InjectData_v1) []product.InjectData_v1{
 	result := method
 
