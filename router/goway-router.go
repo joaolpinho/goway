@@ -1,39 +1,57 @@
 package router
 import (
-
-	"github.com/andrepinto/goway/product"
 	"fmt"
-	"github.com/andrepinto/goway/util"
+	"github.com/andrepinto/goway/product"
 )
+
+type RouterOptions func(*GoWayRouter) *GoWayRouter
+
+
+//noinspection GoUnusedExportedFunction
+func StrictSlash(r *GoWayRouter) *GoWayRouter {
+	r.StrictSlash = true
+	return r
+}
+
+//noinspection GoUnusedExportedFunction
+func AddOptionsRoute(r *GoWayRouter) *GoWayRouter {
+	r.AddOptionsRoute = true
+	return r
+}
+
 
 type GoWayRouter struct {
 	Router *Router
 	AddOptionsRoute bool
-
+	StrictSlash		bool
 }
 
-func NewGoWayRouter(addOptionsRoute bool) *GoWayRouter{
-	return &GoWayRouter{
+func NewGoWayRouter(opts ...RouterOptions) *GoWayRouter{
+	r := &GoWayRouter{
 		Router: NewRouter(),
-		AddOptionsRoute: addOptionsRoute,
 	}
+	for _, funcOpts := range opts {
+		r = funcOpts(r)
+	}
+	return r
 }
 
 
 func (r *GoWayRouter) Compile()  {
-	r.Router.Compile()
+	if (r.StrictSlash) {
+		r.Router.CompileStrict()
+	} else {
+		r.Router.Compile()
+	}
 }
 
 
 func (r *GoWayRouter) CheckRoute(path string, verb string, code string, version string) (*Route, map[string]interface{})  {
-	path = util.PrepareUrl(path)
-	route, params := r.Router.Dispatch(verb, path, code, version)
-	return route, params
+	return r.Router.Dispatch(verb, path, code, version)
 }
 
 func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.Routes_v1)  {
 	for _, k := range routes{
-		k.ListenPath = util.PrepareUrl(k.ListenPath)
 		r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, k.Code), k.ListenPath, k.Verb, code, version, k.Handlers, k)
 		if(len(k.Alias)>0){
 			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, fmt.Sprintf("%s_alias",k.Code)), k.Alias, k.Verb, code, version, k.Handlers, k)
@@ -44,9 +62,7 @@ func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.
 	}
 }
 
-
 func (r *GoWayRouter) AddRoute(name string, path string, verb string,  code string, version string, handlers []string, apiMethod product.Routes_v1){
-
 	switch verb {
 	case "GET":
 		r.Router.Get(name, path, code, version, handlers, apiMethod)
@@ -58,27 +74,5 @@ func (r *GoWayRouter) AddRoute(name string, path string, verb string,  code stri
 		r.Router.Delete(name, path, code, version, handlers, apiMethod)
 	case "OPTIONS":
 		r.Router.Options(name, path, code, version, handlers, apiMethod)
-	default:
-
-
-	}
-
-}
-
-
-
-/*
-CLIENTS
-
-
-func (r *GoWayRouter) LoadClients(clients []product.Client_v1){
-	for _, k := range clients{
-		r.Clients[util.ClientCode(k.ApiPath, k.Version)] = k
 	}
 }
-
-func (r *GoWayRouter) CheckClient(path string, version string) *product.Client_v1{
-	x:= r.Clients[util.ClientCode(path, version)]
-	return &x
-}
-*/
