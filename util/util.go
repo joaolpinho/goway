@@ -5,9 +5,14 @@ import (
 	"github.com/andrepinto/goway/product"
 )
 
-func ClientCode(path string, version string) string{
+func ClientApiKey(path string, version string) string{
 	return fmt.Sprint("[%s-%s]", version, path)
 }
+
+func ClientApiHeaders(client string, product string, version string) string{
+	return fmt.Sprint("[%s-%s-%s]", version, client, product)
+}
+
 
 func ProductCode(path string, version string) string{
 	return fmt.Sprintf("[%s-%s]", version, path)
