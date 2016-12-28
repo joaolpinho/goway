@@ -4,6 +4,7 @@ import (
 	"github.com/andrepinto/goway/product"
 	"github.com/andrepinto/goway/util"
 	"github.com/andrepinto/goway/proxy"
+	"github.com/andrepinto/goway/constants"
 )
 
 type GowayClientRouter struct  {
@@ -24,7 +25,7 @@ func NewGowayClientRouter(options ...RouterOptions) *GowayClientRouter{
 
 func (r *GowayClientRouter) LoadRoutes(clients []product.Client_v1, mode string)  {
 	for _, v := range clients{
-		if mode==proxy.CLIENT_HEADERS_MODE {
+		if mode==constants.CLIENT_HEADERS_MODE {
 			r.Clients[util.ClientApiHeaders(v.Client, v.Product, v.Version)]=v
 		}else {
 			r.Clients[util.ClientApiKey(v.ApiPath, v.Version)]=v
