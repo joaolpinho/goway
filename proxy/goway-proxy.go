@@ -15,12 +15,10 @@ import (
 	"github.com/andrepinto/goway/util"
 	"github.com/andrepinto/goway/handlers"
 	"github.com/andrepinto/goway/util/worker"
+	"github.com/andrepinto/goway/constants"
 )
 
-const (
-	API_KEY_MODE = "API_KEY_MODE"
-	CLIENT_HEADERS_MODE = "CLIENT_HEADERS_MODE"
-)
+
 
 type GoWayProxy struct{
 	proxy        	 	*httputil.ReverseProxy
@@ -50,7 +48,7 @@ func NewGoWayProxy(options *GowayProxyOptions) *GoWayProxy{
 	proxy.Transport = &transport{http.DefaultTransport}
 
 	if len(options.ClientMode)==0 {
-		options.ClientMode = API_KEY_MODE
+		options.ClientMode = constants.API_KEY_MODE
 	}
 
 	return &GoWayProxy{
@@ -79,7 +77,7 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 		version = DEFAULT_VERSION
 	}
 
-	if p.ClientMode == CLIENT_HEADERS_MODE{
+	if p.ClientMode == constants.CLIENT_HEADERS_MODE{
 		rs, cl, newPath = p.checkClientByHeaders(req.URL.Path, req.Header.Get(GOWAY_CLIENT),  req.Header.Get(GOWAY_PRODUCT), req.Header.Get(GOWAY_VERSION))
 	}else{
 		rs, cl, newPath = p.checkClientByApiKey(req.URL.Path, version)
