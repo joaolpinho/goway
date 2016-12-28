@@ -29,7 +29,7 @@ func (r *GowayClientRouter) LoadRoutes(clients []product.Client_v1, mode string)
 		}else {
 			r.Clients[util.ClientApiKey(v.ApiPath, v.Version)]=v
 		}
-		r.GoWayRouter.CreateRoute(v.Client, v.Version, v.Routes)
+		r.GoWayRouter.CreateRoute(util.ClientRouteCode(v.Client, v.Product), v.Version, v.Routes)
 	}
 
 

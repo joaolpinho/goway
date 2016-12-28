@@ -6,13 +6,17 @@ import (
 )
 
 func ClientApiKey(path string, version string) string{
-	return fmt.Sprint("[%s-%s]", version, path)
+	return fmt.Sprintf("[%s-%s]", version, path)
 }
 
 func ClientApiHeaders(client string, product string, version string) string{
-	return fmt.Sprint("[%s-%s-%s]", version, client, product)
+	return fmt.Sprintf("[%s-%s-%s]", version, client, product)
 }
 
+
+func ClientRouteCode(client string, product string) string{
+	return fmt.Sprintf("%s%s", client, product)
+}
 
 func ProductCode(path string, version string) string{
 	return fmt.Sprintf("[%s-%s]", version, path)

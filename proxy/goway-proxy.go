@@ -96,7 +96,7 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	}
 
 	//check client routes
-	rs, route = p.checkRoute(newPath, req.Method, cl.Client, cl.Version, true)
+	rs, route = p.checkRoute(newPath, req.Method, util.ClientRouteCode(cl.Client, cl.Product), cl.Version, true)
 	if(rs){
 		p.redirect(route, cl.GlobalInjectData, req, res)
 		return
