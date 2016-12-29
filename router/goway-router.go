@@ -52,10 +52,9 @@ func (r *GoWayRouter) CheckRoute(path string, verb string, code string, version 
 
 func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.Routes_v1)  {
 	for _, k := range routes{
+		fmt.Println(fmt.Sprintf("%s_%s_%s", version, code, k.Code))
 		r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, k.Code), k.ListenPath, k.Verb, code, version, k.Handlers, k)
-		if(len(k.Alias)>0){
-			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, fmt.Sprintf("%s_alias",k.Code)), k.Alias, k.Verb, code, version, k.Handlers, k)
-		}
+
 		if(r.AddOptionsRoute){
 			r.AddRoute(fmt.Sprintf("%s_%s_%s", version, code, k.Code), k.ListenPath, "OPTIONS", code, version, k.Handlers, k)
 		}
@@ -63,6 +62,7 @@ func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.
 }
 
 func (r *GoWayRouter) AddRoute(name string, path string, verb string,  code string, version string, handlers []string, apiMethod product.Routes_v1){
+	fmt.Println("add:", path)
 	switch verb {
 	case "GET":
 		r.Router.Get(name, path, code, version, handlers, apiMethod)

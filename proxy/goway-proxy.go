@@ -67,6 +67,7 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 
 	var rs bool
 	var route *router.Route
+	var clInternalRouter *router.InternalClientRouter
 	var cl *product.Client_v1
 	var newPath string
 
@@ -78,10 +79,12 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if p.ClientMode == constants.CLIENT_HEADERS_MODE{
-		rs, cl, newPath = p.checkClientByHeaders(req.URL.Path, req.Header.Get(GOWAY_CLIENT),  req.Header.Get(GOWAY_PRODUCT), req.Header.Get(GOWAY_VERSION))
+		rs, clInternalRouter, newPath = p.checkClientByHeaders(req.URL.Path, req.Header.Get(GOWAY_CLIENT),  req.Header.Get(GOWAY_PRODUCT), req.Header.Get(GOWAY_VERSION))
 	}else{
-		rs, cl, newPath = p.checkClientByApiKey(req.URL.Path, version)
+		rs, clInternalRouter, newPath = p.checkClientByApiKey(req.URL.Path, version)
 	}
+
+	cl = clInternalRouter.Client
 
 	req.URL.Path = newPath
 
@@ -94,14 +97,15 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	}
 
 	//check client routes
-	rs, route = p.checkRoute(newPath, req.Method, util.ClientRouteCode(cl.Client, cl.Product), cl.Version, true)
+	rs, route = p.checkRoute(clInternalRouter.Router, newPath, req.Method, util.ClientRouteCode(cl.Client, cl.Product), cl.Version, true)
 	if(rs){
 		p.redirect(route, cl.GlobalInjectData, req, res)
 		return
 	}
 
 	//check product routes
-	rs, route = p.checkRoute(newPath, req.Method, cl.Product, cl.Version, false)
+	prdInternalRouter := p.productRouter.CheckProduct(cl.Product, cl.Version)
+	rs, route = p.checkRoute(prdInternalRouter.Router, newPath, req.Method, cl.Product, cl.Version, false)
 	if(rs){
 		p.redirect(route, cl.GlobalInjectData, req, res)
 		return
@@ -110,14 +114,10 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	p.respond(req, res.Set(http.StatusNotFound, API_ROUTE_NOT_FOUND, nil) )
 }
 
-func(p *GoWayProxy) checkRoute(path string, verb string, code string, version string, client bool) (bool, *router.Route){
-	var route *router.Route;
+func(p *GoWayProxy) checkRoute(rt *router.GoWayRouter, path string, verb string, code string, version string, client bool) (bool, *router.Route){
+	var route *router.Route
 
-	if client {
-		route, _ = p.clientRouter.CheckRoute(path, verb, code, version)
-	}else{
-		route, _ = p.productRouter.CheckRoute(path, verb, code, version)
-	}
+	route, _ = rt.CheckRoute(path, verb, code, version)
 
 
 	if route==nil {
@@ -127,38 +127,38 @@ func(p *GoWayProxy) checkRoute(path string, verb string, code string, version st
 	}
 }
 
-func(p *GoWayProxy) checkClientByApiKey(path string, version string) (bool, *product.Client_v1, string){
+func(p *GoWayProxy) checkClientByApiKey(path string, version string) (bool, *router.InternalClientRouter, string){
 	urlSplit := strings.Split(path, "/")
 
 	if len(urlSplit)==0 {
 		return false, nil, ""
 	}
 
-	client := p.clientRouter.CheckClientByApiKey(urlSplit[1], version)
+	internal := p.clientRouter.CheckClientByApiKey(urlSplit[1], version)
 
-	if client==nil || len(client.Client)==0 {
-		return false, client, ""
+	if internal==nil || len(internal.Client.Client)==0 {
+		return false, internal, ""
 	}
 
 	urlWithoutApiId := fmt.Sprintf("/%s",strings.Join(urlSplit[2:],"/"))
 
-	return true, client, urlWithoutApiId
+	return true, internal, urlWithoutApiId
 }
 
 
-func(p *GoWayProxy) checkClientByHeaders(path string, client string, product string, version string) (bool, *product.Client_v1, string){
+func(p *GoWayProxy) checkClientByHeaders(path string, client string, product string, version string) (bool, *router.InternalClientRouter, string){
 
 	if len(client) == 0 || len(product) == 0 || len(version) == 0{
 		return false, nil, ""
 	}
 
-	cl := p.clientRouter.CheckClientByHeaders(client, product, version)
+	internal := p.clientRouter.CheckClientByHeaders(client, product, version)
 
-	if cl==nil || len(cl.Client)==0 {
-		return false, cl, ""
+	if internal==nil || len(internal.Client.Client)==0 {
+		return false, internal, ""
 	}
 
-	return true, cl, path
+	return true, internal, path
 }
 
 func(p *GoWayProxy) respond( req *http.Request, res *HttpResponse ) {
