@@ -28,17 +28,21 @@ func NewRouter() *Router {
 
 
 	router.routesByMethod = map[string][]*Route{
+		"HEAD":    make([]*Route, 0),
 		"GET":    make([]*Route, 0),
 		"POST":   make([]*Route, 0),
 		"PUT":    make([]*Route, 0),
+		"PATCH":    make([]*Route, 0),
 		"DELETE": make([]*Route, 0),
 		"OPTIONS": make([]*Route, 0),
 	}
 
 	router.regexesByMethod = map[string][]*regexp.Regexp{
+		"HEAD":    make([]*regexp.Regexp, 0),
 		"GET":    make([]*regexp.Regexp, 0),
 		"POST":   make([]*regexp.Regexp, 0),
 		"PUT":    make([]*regexp.Regexp, 0),
+		"PATCH":    make([]*regexp.Regexp, 0),
 		"DELETE": make([]*regexp.Regexp, 0),
 		"OPTIONS": make([]*regexp.Regexp, 0),
 	}
@@ -46,6 +50,9 @@ func NewRouter() *Router {
 	return router
 }
 
+func (r *Router) Head(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1 ) *Route {
+	return r.addRoute("HEAD", name, pattern, code, version, handlers, apiMethod)
+}
 
 func (r *Router) Get(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1 ) *Route {
 	return r.addRoute("GET", name, pattern, code, version, handlers, apiMethod)
@@ -57,6 +64,10 @@ func (r *Router) Post(name string, pattern string, code string, version string, 
 
 func (r *Router) Put(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
 	return r.addRoute("PUT", name, pattern, code, version, handlers, apiMethod)
+}
+
+func (r *Router) Patch(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {
+	return r.addRoute("PATCH", name, pattern, code, version, handlers, apiMethod)
 }
 
 func (r *Router) Delete(name string, pattern string, code string, version string, handlers []string, apiMethod product.Routes_v1) *Route {

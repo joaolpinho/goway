@@ -64,12 +64,16 @@ func (r *GoWayRouter) CreateRoute(code string, version string, routes []product.
 func (r *GoWayRouter) AddRoute(name string, path string, verb string,  code string, version string, handlers []string, apiMethod product.Routes_v1){
 	fmt.Println("add:", path)
 	switch verb {
+	case "HEAD":
+		r.Router.Head(name, path, code, version, handlers, apiMethod)
 	case "GET":
 		r.Router.Get(name, path, code, version, handlers, apiMethod)
 	case "POST":
 		r.Router.Post(name, path, code, version, handlers, apiMethod)
 	case "PUT":
 		r.Router.Put(name, path, code, version, handlers, apiMethod)
+	case "PATCH":
+		r.Router.Patch(name, path, code, version, handlers, apiMethod)
 	case "DELETE":
 		r.Router.Delete(name, path, code, version, handlers, apiMethod)
 	case "OPTIONS":
