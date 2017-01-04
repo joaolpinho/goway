@@ -84,6 +84,11 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 		rs, clInternalRouter, newPath = p.checkClientByApiKey(req.URL.Path, version)
 	}
 
+	if(!rs) {
+		p.respond(req, res.Set( http.StatusNotFound, API_KEY_NOT_FOUND, nil) )
+		return
+	}
+
 	cl = clInternalRouter.Client
 
 	req.URL.Path = newPath
@@ -91,10 +96,6 @@ func (p *GoWayProxy) Handle(w http.ResponseWriter, req *http.Request) {
 	req.Header.Set(GOWAY_PRODUCT, cl.Product)
 	req.Header.Set(GOWAY_CLIENT, cl.Client)
 
-	if(!rs) {
-		p.respond(req, res.Set( http.StatusNotFound, API_KEY_NOT_FOUND, nil) )
-		return
-	}
 
 	//check client routes
 	rs, route = p.checkRoute(clInternalRouter.Router, newPath, req.Method, util.ClientRouteCode(cl.Client, cl.Product), cl.Version, true)
